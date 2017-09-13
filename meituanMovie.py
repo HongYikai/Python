@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 #===================================================
 #               www.hongyikai.com
-#              美团电影爬虫-服务器版
 #===================================================
 
 from selenium import webdriver
@@ -28,7 +27,7 @@ testCount=0
 #定时的死循环
 while True:
 #你的selenium的驱动地址：
-    driver = webdriver.PhantomJS(executable_path='/home/hong/anaconda3/selenium/webdriver/phantomjs-2.1.1-linux-x86_64/bin/phantomjs')
+    driver = webdriver.PhantomJS(executable_path='/root/anaconda3/selenium/webdriver/phantomjs-2.1.1-linux-x86_64/bin/phantomjs')
     #你的网址（先按规则搜索，copy第一个结果页面到这里）：
     webUrl='http://xm.meituan.com/dianying/cinemalist/zhongshanlulundu' 
     #webUrl='http://xm.meituan.com/shop/115078857?mtt=1.movie%2Fcinemalist.0.0.j7c6icyx'#华谊兄弟影院
@@ -111,20 +110,28 @@ while True:
                     
                     #对手机专享优惠的价格截图，然后截图 
                     driver.get_screenshot_as_file('triggerPrice.png') 
-                    left = int(triggerPrice.location['x'])+81# 去掉文字
+                    left = int(triggerPrice.location['x'])+24 # 去掉文字
                     top = int(triggerPrice.location['y']) #减去滚动条的值
                     right = int(triggerPrice.location['x'] + triggerPrice.size['width'])-19 #去掉右边的下拉箭头
                     bottom = int(triggerPrice.location['y'] + triggerPrice.size['height']) #减去滚动条的值
 #                    print(left, top, right, bottom)
-                    
+#                    
                     im = Image.open('triggerPrice.png')
-                    im = im.crop((left, top, right, bottom)) #截取价格        
+#                    print('open')
+
+                    im = im.crop((left, top, right, bottom)) #截取价格 
+#                    print('crop')
                     w,h = im.size #获得图片尺寸
+#                    print('im.size')
                     im=im.resize((w*3,h*3)) #长宽各放大10倍
+#                    print('resize')
                     im=im.convert('L') #灰阶
+#                    print('convert')
                     im=im.point(lambda x:0 if x<195 else 255) #二值化
 #                    print(left, top, right, bottom)
-#                    im.save('price.png') #储存处理后的图片
+#                    print('point')
+                    im.save('price.png') #储存处理后的图片
+#                    print('save')
 
                     thePrice = pytesseract.image_to_string(im) #识别数值
 #                    print(left, top, right, bottom)
@@ -203,5 +210,4 @@ while True:
         
         
     print('下一个循环继续执行：')
-
 
