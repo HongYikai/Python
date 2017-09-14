@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #===================================================
 #               www.hongyikai.com
+#               For Ubuntu server
 #===================================================
 
 from selenium import webdriver
@@ -15,14 +16,14 @@ import pytesseract
 
 
 #目标价位：元，低于此价位的手机专享价才会被收集
-targetPrice= 30
+targetPrice= 15
 
 
 itchat.auto_login(enableCmdQR=2,hotReload=True) #用命令行显示二维码
 #itchat.auto_login() #登陆一次就可以了
 
 
-
+output2=[' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ']
 testCount=0
 #定时的死循环
 while True:
@@ -101,6 +102,7 @@ while True:
             #电影开放售卖的日期
             movie_dates=driver.find_elements_by_xpath("//div[@class='movie-info movie-info--current']/div[@class='show-time']//a")
             driver.implicitly_wait(2) #设置等待超时，以免try命令等太久
+            movieNameOutput=1
             for movie_date in movie_dates:
                 movie_date.click()
                 time.sleep(0.1)
@@ -130,7 +132,7 @@ while True:
                     im=im.point(lambda x:0 if x<195 else 255) #二值化
 #                    print(left, top, right, bottom)
 #                    print('point')
-                    im.save('price.png') #储存处理后的图片
+#                    im.save('price.png') #储存处理后的图片
 #                    print('save')
 
                     thePrice = pytesseract.image_to_string(im) #识别数值
@@ -141,7 +143,11 @@ while True:
 
                     print(movie_date.text,': ',triggerPriceShow,thePrice,'元')
                     if thePrice <= targetPrice:
-                        output.append(movieName+'('+movie_date.text+':'+str(thePrice)+'元)')
+                        if movieNameOutput==1:
+#                            output.append(' ')
+                            output.append(movieName+'：')
+                            movieNameOutput=0
+                        output.append(movie_date.text+':'+str(thePrice)+'元')
                 except:
                     print(movie_date.text,': 没有优惠')
             driver.implicitly_wait(30) #恢复为30秒
@@ -180,16 +186,30 @@ while True:
     
     
     
-    itchat.send(' ', toUserName='filehelper')#空消息，好像可以减少微信掉线？
-    if len(output) != 0 :
+#    itchat.send(' ', toUserName='filehelper')#空消息，好像可以减少微信掉线？
+    lens=len(output)
+    if lens != 0 :
         #微信只能发字符，把列表转换成字符把
         movieMsgSend='第'+str(testCount)+'次检索'+'\n'+'美团优惠电影票如下：'+'\n'+'\n' #清空上次可能的输出信息
-        for outP in output:
-            movieMsgSend=movieMsgSend+outP+'\n'
+        #print(output) 
+        
+        output3=0
+        for l in range(lens):
+            if output[l]==output2[l]:
+                pass
+            else:
+                output2[l]=output[l]
+                output3=1
+                
+        if output3==1:
+            for outP in output:
+                movieMsgSend=movieMsgSend+outP+'\n'
+            movieMsgSend=movieMsgSend+'\n'+'由Kai的服务器监控与筛选'+'\n'+'你家的小虫'
+            author.send(movieMsgSend) 
+            print(movieMsgSend)
+        elif output3==0:
+            print('本次检索优惠内容不变。')
             
-        movieMsgSend=movieMsgSend+'\n'+'由Kai的服务器监控与筛选'+'\n'+'你家的小虫'
-        author.send(movieMsgSend) 
-        print(movieMsgSend)
         print('-'*30+'\n'+'\n'+'\n') 
        
         
@@ -199,15 +219,16 @@ while True:
     time.sleep(600+timeRandom)
 #    time.sleep(5)    
 
-    if 1<hour<6: #晚上就不要爬了，吵人。注意不要让if一个晚上可以运行两次，后果很严重。。。
+    if 0<hour<7: #晚上就不要爬了，吵人。注意不要让if一个晚上可以运行两次，后果很严重。。。
         haha='第'+str(testCount)+'运行已完成，进入睡眠模式。'+'\n'+'\n'+'明早见'+'\n'+'你家的小虫'
         author.send(haha)
         print(haha)
-        time.sleep(21600)
+        time.sleep(22000)
         haha='早上好，开始自动执行今天的第一次运行。'+'\n'+'\n'+'你家的小虫'
         author.send(haha)
         print(haha)
         
         
     print('下一个循环继续执行：')
+
 
