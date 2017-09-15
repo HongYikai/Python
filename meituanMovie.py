@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 #===================================================
 #               www.hongyikai.com
-#               For Ubuntu server
+#               for Ubuntu server 
+#                     v3.1
 #===================================================
 
 from selenium import webdriver
@@ -23,7 +24,7 @@ itchat.auto_login(enableCmdQR=2,hotReload=True) #用命令行显示二维码
 #itchat.auto_login() #登陆一次就可以了
 
 
-output2=[' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ']
+output2=[' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ']
 testCount=0
 #定时的死循环
 while True:
@@ -65,8 +66,10 @@ while True:
 #    driver.maximize_window() #屏幕最大化
 #    driver.set_window_size(1440, 900)
     time.sleep(5)
-    dateNow=time.localtime()
-    print('当地日期为：%s'%time.strftime("%Y-%m-%d", time.localtime()))
+    dateNow=time.strftime("%Y-%m-%d", time.localtime())
+    print('当地日期为：%s'%dateNow)
+    dateNow=time.strptime(dateNow, "%Y-%m-%d")
+    
     #得到影片列表数movieN（每个列表里还有影片）
     movieLists=driver.find_elements_by_xpath("//li[@class='mt-slider-sheet mt-slider-current-sheet' or @class='mt-slider-sheet']")
     movieN=len(movieLists)
@@ -164,10 +167,13 @@ while True:
     
     #获取网络时间
     
-    driver.get('http://www.114time.com')
-    time.sleep(5)
-    hour=driver.find_element_by_xpath('//b[@class="hour"]').text
+#    driver.get('http://www.114time.com')
+#    time.sleep(5)
+#    hour=driver.find_element_by_xpath('//b[@class="hour"]').text
+    hour=time.strftime("%H", time.localtime())
     hour=int(hour)
+    print('Hour is: %d'%hour)
+    print(' ')
     time.sleep(1)
     driver.quit() 
     
@@ -190,7 +196,7 @@ while True:
     lens=len(output)
     if lens != 0 :
         #微信只能发字符，把列表转换成字符把
-        movieMsgSend='第'+str(testCount)+'次检索'+'\n'+'美团优惠电影票如下：'+'\n'+'\n' #清空上次可能的输出信息
+        movieMsgSend='第'+str(testCount)+'次检索'+'\n'+'美团优惠电影票<'+str(targetPrice)+'元的,如下：'+'\n'+'\n' #清空上次可能的输出信息
         #print(output) 
         
         output3=0
@@ -208,7 +214,7 @@ while True:
             author.send(movieMsgSend) 
             print(movieMsgSend)
         elif output3==0:
-            print('本次检索优惠内容不变。')
+            print('第'+str(testCount)+'次检索'+'\n'+'本次检索优惠内容不变。')
             
         print('-'*30+'\n'+'\n'+'\n') 
        
