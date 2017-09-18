@@ -2,7 +2,7 @@
 #===================================================
 #               www.hongyikai.com
 #               for Ubuntu server 
-#                     v3.1
+#                     v3.1.2
 #===================================================
 
 from selenium import webdriver
@@ -115,7 +115,7 @@ while True:
                     
                     #对手机专享优惠的价格截图，然后截图 
                     driver.get_screenshot_as_file('triggerPrice.png') 
-                    left = int(triggerPrice.location['x'])+24 # 去掉文字
+                    left = int(triggerPrice.location['x'])+23 # 去掉文字,注意9.9有沒有被識別
                     top = int(triggerPrice.location['y']) #减去滚动条的值
                     right = int(triggerPrice.location['x'] + triggerPrice.size['width'])-19 #去掉右边的下拉箭头
                     bottom = int(triggerPrice.location['y'] + triggerPrice.size['height']) #减去滚动条的值
