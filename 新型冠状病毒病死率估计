@@ -1,0 +1,109 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Feb 10 03:22:41 2020
+新型冠状病毒病死率估计
+发现问题：表观病死率：目前死亡患者数量/目前确诊数，但实际上，刚入院的病人一般不会立即死亡，而每天新增确诊例数却在线性增长，
+很大一部分病人仍处于死亡潜伏期[注：疾病确诊到死亡的一段时间]
+解决问题：详见代码
+
+缺乏病人住院时间的数据，这个数据对最终结果影响比较大，我是按正态分布产生的住院时间随机数
+代码运行几次后发现，前10个病死率的离散程度比较高，所以，结果仅仅供参考!仅仅供参考!仅仅供参考!
+疫情数据来自新华网，各网数据略有不同，差别可忽略
+真实病死率影响因素很多，包括医生或群众对疾病的认识的提高、医疗资源不足、政府的行为等等。
+本代码仅供学习使用
+
+@author: HONG YIKAI
+"""
+
+import numpy as np
+import pandas as pd 
+import matplotlib.pyplot as plt
+"""
+python绘图笔记
+"""
+
+
+#加载疫情数据
+cases_data=pd.read_csv("cases_data.csv") #加载疫情数据
+print(cases_data)
+days=len(cases_data)
+fig1=plt.figure()
+ax1=fig1.add_subplot(111)
+ax1.plot(np.arange(days),cases_data['新增确诊'],'r--',alpha=0.5)
+fig2=plt.figure()
+ax2=fig2.add_subplot(111)
+ax2.plot(np.arange(days),cases_data['新增死亡'],'r--',alpha=0.5)
+#plt.show()
+
+'''
+假设每天新增病人的病死率是固定的。实际上,疫情刚开始对疾病不认识、疫情爆发中医疗资源
+紧缺、疫情后期对疾病认识到位、医疗资源回复，所以每天新增病人的病死率类似抛物线的。
+'''
+#求实时病死率Pdie
+P_rec=[]#记录病死率等参数
+cases_all=cases_data["新增确诊"].sum() #累计确诊
+death_now=cases_data['新增死亡'].sum() #目前累计死亡
+xxx=int(death_now/cases_all*1000+1)
+for Pdie in range(xxx,101,1):
+    cases_data["实际死亡"]=cases_data["新增确诊"]*Pdie/1000   #当日确诊的病人中死亡的人数
+    cases_data["实际死亡"]=cases_data["实际死亡"].apply(int)
+    n=cases_data['实际死亡'].sum() #实际死亡人数
+    print('总确诊例数%i，病死率%0.1f%%，实际死亡%i人,目前死亡%i人'%(cases_all,Pdie/10,n,death_now))
+    print('----------------------------------------------------------------') 
+
+    for Xday in range(4,20):  #产生死亡潜伏期的均值Xday(死亡病人从确诊到死亡的时间)
+        for S in range(3,Xday): #产生标准差S
+            k=np.random.normal(Xday,S,n) #产生预计死亡病人的所有死亡潜伏期 
+            k=k.astype(np.int)
+            k=np.abs(k)
+            all_death_cases=[]
+            for day in range(days): #将死亡病人展开
+                all_death_cases += [day]*cases_data["实际死亡"][day] 
+            for i in range(n):
+                all_death_cases[i]=all_death_cases[i]+k[i] #加上死亡潜伏期
+#            print(all_death_cases)            
+            #计分，模型当天死亡人数与真实死亡人数之差，每差1人算1分
+            score=0
+            for day in range(days):
+                a=all_death_cases.count(day)-cases_data['新增死亡'][day]
+                score+= np.abs(a)
+            b=0 #实际死亡中还未死亡的例数
+            for i in range(n):
+                if all_death_cases[i] >= days:
+                    b+=1
+            print('死亡潜伏期均值%i天，标准差%i，分数%i分，模型还未死亡%i例'%(Xday,S,score,b))
+            P_rec.append([Pdie,Xday,S,score,b]) #记录分值等参数
+            
+    print('----------------------------------------------------------------') 
+    print('\n\n\n')           
+    
+     
+P_rec=sorted(P_rec,key=lambda x:x[3])   #排序一下
+P_rec=P_rec[:50] #取前10个
+
+
+
+print('\n\n\n\n\n\n\n\n\n')  
+print('================================================================') 
+print('取前50个分值最小的模型，并求均值')   
+print('================================================================') 
+
+rate=0
+willdeath=0
+for i in range(50):
+    print('病死率%0.1f%%，死亡潜伏期均值%i天，标准差%i，分数%i分，模型还未死亡%i例'%(P_rec[i][0]/10,P_rec[i][1],P_rec[i][2],P_rec[i][3],P_rec[i][4]))
+    rate+=P_rec[i][0]
+    willdeath+=P_rec[i][4]
+
+print('\n\n\n\n')  
+print('病死率最终估算%0.1f%%，目前已确诊病人中还有%i人预计死亡'%(rate/500,willdeath/50))
+print('----------------------------------------------------------------') 
+print('me@hongyikai.com')
+
+
+
+
+
+
+
+
